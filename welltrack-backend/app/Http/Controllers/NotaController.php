@@ -22,6 +22,7 @@ class NotaController extends Controller
             'idUsuario' => $user->idUsuario,
             'contenido' => $validated['contenido'],
             'estadoNota' => $validated['estadoNota'] ?? 'activa',
+            'fechaCreacionNota' => now(),
         ]);
 
         return response()->json([
@@ -66,5 +67,45 @@ class NotaController extends Controller
         $nota->save();
 
         return response()->json(['mensaje' => 'Nota destacada', 'nota' => $nota], Response::HTTP_OK);
+    }
+
+        public function archivar (Request $request, $id)
+    {
+        $nota = Nota::findOrFail($id);
+
+        if ($nota->idUsuario !== $request->user()->idUsuario) {
+            return response()->json(['mensaje' => 'No autorizado'], Response::HTTP_FORBIDDEN);
+        }
+        $nota->estadoNota = 'archivada';
+        $nota->save();
+
+        return response()->json(['mensaje' => 'Nota archivada', 'nota' => $nota], Response::HTTP_OK);
+    }
+
+        public function restaurar (Request $request, $id)
+    {
+        $nota = Nota::findOrFail($id);
+
+        if ($nota->idUsuario !== $request->user()->idUsuario) {
+            return response()->json(['mensaje' => 'No autorizado'], Response::HTTP_FORBIDDEN);
+        }
+        $nota->estadoNota = 'activa';
+        $nota->save();
+
+        return response()->json(['mensaje' => 'Nota restaurada', 'nota' => $nota], Response::HTTP_OK);
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        $nota = Nota::findOrFail($id);
+
+        if ($nota->idUsuario !== $request->user()->idUsuario) {
+            return response()->json(['mensaje' => 'No autorizado'], Response::HTTP_FORBIDDEN);
+        }
+
+        $nota->estadoNota = 'eliminada';
+        $nota->save();
+
+        return response()->json(['mensaje' => 'Nota eliminada', 'nota' => $nota], Response::HTTP_OK);
     }
 }

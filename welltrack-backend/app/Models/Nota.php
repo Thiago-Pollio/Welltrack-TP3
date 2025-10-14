@@ -12,7 +12,8 @@ class Nota extends Model
     protected $fillable = [
         'idUsuario',
         'contenido',
-        'estadoNota'
+        'estadoNota',
+        'fechaCreacionNota'
     ];
 
     public $timestamps = true;
