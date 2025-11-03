@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Nota extends Model
 {
+
+    use HasFactory;
+
     protected $table = 'notas';
     protected $primaryKey = 'idNota';
+    public $timestamps = true;
 
     protected $fillable = [
         'idUsuario',
@@ -15,6 +20,4 @@ class Nota extends Model
         'estadoNota',
         'fechaCreacionNota'
     ];
-
-    public $timestamps = true;
 }

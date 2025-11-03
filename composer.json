@@ -1,5 +1,8 @@
 {
     "require-dev": {
         "doctrine/dbal": "^4.3"
+    },
+    "require": {
+        "ext-soap": "*"
     }
 }

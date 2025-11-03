@@ -1,5 +1,115 @@
 <?php
 
+// namespace App\Http\Controllers;
+
+// use App\Models\Nota;
+// use Illuminate\Http\Request;
+// use Illuminate\Http\Response;
+
+// class NotaController extends Controller
+// {
+//     public function store(Request $request)
+//     {
+//         $validated = $request->validate([
+//             //'idUsuario' => 'required|exists:usuarios,idUsuario',
+//             'contenido' => 'required|string|max:500',
+//             'estadoNota' => 'nullable|string|in:activa,destacada,archivada,eliminada'
+//         ]);
+
+//         $user = $request->user();
+
+//         $nota = Nota::create([
+//             'idUsuario' => $user->idUsuario,
+//             'contenido' => $validated['contenido'],
+//             'estadoNota' => $validated['estadoNota'] ?? 'activa',
+//             'fechaCreacionNota' => now(),
+//         ]);
+
+//         return response()->json([
+//             'mensaje' => 'Nota creada con exito',
+//             'nota' => $nota
+//         ], 201);
+//     }
+
+//     public function index(Request $request)
+//     {
+//         $user = $request->user();
+//         $estado = $request->query('estado');
+
+//         if ($estado) {
+//             $notas = Nota::where('idUsuario', $user->idUsuario)
+//             ->where('estadoNota', $estado)
+//             ->orderBy('updated_at', 'desc')
+//             ->get();
+//         } else {
+//             $notas = Nota::where('idUsuario', $user->idUsuario)
+//             ->whereIn('estadoNota', ['destacada', 'activa'])
+//             ->orderByRaw("estadoNota = 'destacada' DESC, updated_at DESC")
+//             ->get();
+//         }
+
+//         //$notas = Nota::where('idUsuario', $request->user()->idUsuario)->get();
+
+//         return response()->json([
+//             'mensaje' => 'Notas obtenidas con éxito',
+//             'notas' => $notas
+//         ], 200);
+//     }
+
+//     public function destacar (Request $request, $id)
+//     {
+//         $nota = Nota::findOrFail($id);
+
+//         if ($nota->idUsuario !== $request->user()->idUsuario) {
+//             return response()->json(['mensaje' => 'No autorizado'], Response::HTTP_FORBIDDEN);
+//         }
+//         $nota->estadoNota = 'destacada';
+//         $nota->save();
+
+//         return response()->json(['mensaje' => 'Nota destacada', 'nota' => $nota], Response::HTTP_OK);
+//     }
+
+//         public function archivar (Request $request, $id)
+//     {
+//         $nota = Nota::findOrFail($id);
+
+//         if ($nota->idUsuario !== $request->user()->idUsuario) {
+//             return response()->json(['mensaje' => 'No autorizado'], Response::HTTP_FORBIDDEN);
+//         }
+//         $nota->estadoNota = 'archivada';
+//         $nota->save();
+
+//         return response()->json(['mensaje' => 'Nota archivada', 'nota' => $nota], Response::HTTP_OK);
+//     }
+
+//         public function restaurar (Request $request, $id)
+//     {
+//         $nota = Nota::findOrFail($id);
+
+//         if ($nota->idUsuario !== $request->user()->idUsuario) {
+//             return response()->json(['mensaje' => 'No autorizado'], Response::HTTP_FORBIDDEN);
+//         }
+//         $nota->estadoNota = 'activa';
+//         $nota->save();
+
+//         return response()->json(['mensaje' => 'Nota restaurada', 'nota' => $nota], Response::HTTP_OK);
+//     }
+
+//     public function destroy(Request $request, $id)
+//     {
+//         $nota = Nota::findOrFail($id);
+
+//         if ($nota->idUsuario !== $request->user()->idUsuario) {
+//             return response()->json(['mensaje' => 'No autorizado'], Response::HTTP_FORBIDDEN);
+//         }
+
+//         $nota->estadoNota = 'eliminada';
+//         $nota->save();
+
+//         return response()->json(['mensaje' => 'Nota eliminada', 'nota' => $nota], Response::HTTP_OK);
+//     }
+// }
+
 namespace App\Http\Controllers;
 
 use App\Models\Nota;
@@ -36,19 +146,19 @@ class NotaController extends Controller
         $user = $request->user();
         $estado = $request->query('estado');
 
+        // ✅ Si viene un estado específico, filtra por ese (incluye archivadas)
         if ($estado) {
-            $notas = Nota::where('idUsuario, $user->idUsuario')
-            ->where('estadoNota', $estado)
-            ->orderBy('updated_at', 'desc')
-            ->get();
-        } else {
             $notas = Nota::where('idUsuario', $user->idUsuario)
-            ->whereIn('estadoNota', ['destacada', 'activa'])
-            ->orderByRaw("estadoNota = 'destacada' DESC, updated_at DESC")
-            ->get();
+                ->where('estadoNota', $estado)
+                ->orderBy('updated_at', 'desc')
+                ->get();
+        } else {
+            // ✅ Si no se pasa "estado", traer todas excepto eliminadas
+            $notas = Nota::where('idUsuario', $user->idUsuario)
+                ->whereIn('estadoNota', ['destacada', 'activa', 'archivada'])
+                ->orderByRaw("FIELD(estadoNota, 'destacada', 'activa', 'archivada'), updated_at DESC")
+                ->get();
         }
-
-        //$notas = Nota::where('idUsuario', $request->user()->idUsuario)->get();
 
         return response()->json([
             'mensaje' => 'Notas obtenidas con éxito',
@@ -56,20 +166,29 @@ class NotaController extends Controller
         ], 200);
     }
 
-    public function destacar (Request $request, $id)
-    {
-        $nota = Nota::findOrFail($id);
+    public function destacar(Request $request, $id)
+{
+    $nota = Nota::findOrFail($id);
 
-        if ($nota->idUsuario !== $request->user()->idUsuario) {
-            return response()->json(['mensaje' => 'No autorizado'], Response::HTTP_FORBIDDEN);
-        }
-        $nota->estadoNota = 'destacada';
-        $nota->save();
-
-        return response()->json(['mensaje' => 'Nota destacada', 'nota' => $nota], Response::HTTP_OK);
+    if ($nota->idUsuario !== $request->user()->idUsuario) {
+        return response()->json(['mensaje' => 'No autorizado'], Response::HTTP_FORBIDDEN);
     }
 
-        public function archivar (Request $request, $id)
+    if ($nota->estadoNota === 'destacada') {
+        $nota->estadoNota = 'activa';
+        $mensaje = 'Nota desmarcada como destacada';
+    } else {
+        $nota->estadoNota = 'destacada';
+        $mensaje = 'Nota destacada';
+    }
+
+    $nota->save();
+
+    return response()->json(['mensaje' => $mensaje, 'nota' => $nota], Response::HTTP_OK);
+}
+
+
+    public function archivar(Request $request, $id)
     {
         $nota = Nota::findOrFail($id);
 
@@ -82,7 +201,7 @@ class NotaController extends Controller
         return response()->json(['mensaje' => 'Nota archivada', 'nota' => $nota], Response::HTTP_OK);
     }
 
-        public function restaurar (Request $request, $id)
+    public function restaurar(Request $request, $id)
     {
         $nota = Nota::findOrFail($id);
 

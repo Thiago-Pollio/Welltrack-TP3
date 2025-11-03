@@ -40,3 +40,15 @@
 .read-the-docs {
   color: #888;
 }
+
+
+.fc {
+  color: #166534 !important; /* verde oscuro */
+  font-weight: 500;
+}
+
+.fc-event {
+  background-color: #dcfce7 !important; /* fondo verde claro */
+  border-color: #86efac !important;
+  color: #14532d !important; /* texto más fuerte */
+}

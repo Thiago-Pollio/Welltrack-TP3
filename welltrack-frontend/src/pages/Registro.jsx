@@ -7,6 +7,7 @@ export default function Registro() {
     nombreUsuario: "",
     email: "",
     password: "",
+    password_confirmation: "", // 👈 agregado
     fechaNac: ""
   });
 
@@ -20,14 +21,14 @@ export default function Registro() {
     });
   };
 
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const response = await fetch("http://127.0.0.1:8000/api/register", {
         method: "POST",
         headers: {
-          "Content-Type" : "application/json",
+          "Content-Type": "application/json",
           Accept: "application/json",
         },
         body: JSON.stringify({
@@ -35,6 +36,7 @@ export default function Registro() {
           nombreUsuario: formData.nombreUsuario,
           email: formData.email,
           password: formData.password,
+          password_confirmation: formData.password_confirmation, // 👈 agregado
           fechaNac: formData.fechaNac,
         }),
       });
@@ -42,40 +44,22 @@ export default function Registro() {
       const data = await response.json();
 
       if (!response.ok) {
-        setMessage(data.mensaje || data.errors?.email?.[0] || "Error al registrarse");
-      return;
+        setMessage(
+          data.mensaje ||
+          data.errors?.email?.[0] ||
+          data.errors?.password?.[0] ||
+          "Error al registrarse"
+        );
+        return;
+      }
+
+      setMessage("Registro exitoso ✅");
+      navigate("/login");
+    } catch (error) {
+      console.error("Error en el registro:", error);
+      setMessage("Hubo un problema con el registro");
     }
-
-    //localStorage.setItem("usuarioActual", JSON.stringify(data.usuario));
-
-    setMessage("Registro exitoso");
-    navigate("/login");
-  } catch (error) {
-    console.error("Error en el registro:", error);
-    setMessage("Hubo un problema con el registro");
-  }
-
-    // Guardar usuario actual y marcar sesión iniciada
-    //localStorage.setItem("usuarioActual", JSON.stringify(formData));
-    //localStorage.setItem("isLoggedIn", "true");
-
-
-
-    };
-
-    // Recuperar usuarios guardados o crear array vacío
-    //const usuariosGuardados = JSON.parse(localStorage.getItem("usuarios")) || [];
-
-    // Revisar si ya existe el usuario
-    //const existeUsuario = usuariosGuardados.some(
-      //(u) => u.email === formData.email || u.nombreUsuario === formData.nombreUsuario
-    //);
-
-
-
-    // Agregar nuevo usuario al array y guardar
-
-  
+  };
 
   return (
     <div className="flex items-center justify-center h-screen">
@@ -117,6 +101,15 @@ export default function Registro() {
             name="password"
             placeholder="Contraseña"
             value={formData.password}
+            onChange={handleChange}
+            className="border rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-green-300 text-lg"
+            required
+          />
+          <input
+            type="password"
+            name="password_confirmation"
+            placeholder="Confirmar contraseña"
+            value={formData.password_confirmation}
             onChange={handleChange}
             className="border rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-green-300 text-lg"
             required
